@@ -125,8 +125,11 @@ class CPU:
         self.alu("DIV", register_a, register_b)
         self.pc += number_of_arguments
 
-    def handle_op_MOD(self):
-        pass
+    def handle_op_MOD(self, number_of_arguments):
+        register_a = self.ram_read(self.pc + 1)
+        register_b = self.ram_read(self.pc + 2)
+        self.alu("MOD", register_a, register_b)
+        self.pc += number_of_arguments
 
     def handle_op_INC(self):
         pass
@@ -138,30 +141,37 @@ class CPU:
     def handle_op_CMP(self, number_of_arguments):
         register_a = self.ram_read(self.pc + 1)
         register_b = self.ram_read(self.pc + 2)
-        if self.registers[register_a] == self.registers[register_b]:
-            self.fl = 0b00000001
-        elif self.registers[register_a] < self.registers[register_b]:
-            self.fl = 0b00000100
-        elif self.registers[register_a] > self.registers[register_b]:
-            self.fl = 0b00000010
+        self.alu("CMP", register_a, register_b)
         self.pc += number_of_arguments
 
-    def handle_op_AND(self):
+    def handle_op_AND(self, number_of_arguments):
+        register_a = self.ram_read(self.pc + 1)
+        register_b = self.ram_read(self.pc + 2)
+        self.alu("AND", register_a, register_b)
+        self.pc += number_of_arguments
+
+    def handle_op_NOT(self, number_of_arguments):
+        register_a = self.ram_read(self.pc + 1)
+        register_b = self.ram_read(self.pc + 2)
+        self.alu("NOT", register_a, register_b)
+        self.pc += number_of_arguments
+
+    def handle_op_OR(self, number_of_arguments):
+        register_a = self.ram_read(self.pc + 1)
+        register_b = self.ram_read(self.pc + 2)
+        self.alu("OR", register_a, register_b)
+        self.pc += number_of_arguments
+
+    def handle_op_XOR(self, number_of_arguments):
+        register_a = self.ram_read(self.pc + 1)
+        register_b = self.ram_read(self.pc + 2)
+        self.alu("XOR", register_a, register_b)
+        self.pc += number_of_arguments
+
+    def handle_op_SHL(self, number_of_arguments):
         pass
 
-    def handle_op_NOT(self):
-        pass
-
-    def handle_op_OR(self):
-        pass
-
-    def handle_op_XOR(self):
-        pass
-
-    def handle_op_SHL(self):
-        pass
-
-    def handle_op_SHR(self):
+    def handle_op_SHR(self, number_of_arguments):
         pass
 
     # FILL THIS OUT
@@ -304,20 +314,52 @@ class CPU:
     def ram_write(self, address, value):
         self.ram[address] = value
 
-    def alu(self, op, reg_a, reg_b):
+    def alu(self, op, register_a, register_b):
         """ALU operations."""
 
         if op is "ADD":
-            self.registers[reg_a] += self.registers[reg_b]
+            self.registers[register_a] += self.registers[register_b]
 
         elif op is "SUB":
-            self.registers[reg_a] -= self.registers[reg_b]
+            self.registers[register_a] -= self.registers[register_b]
 
         elif op is "MUL":
-            self.registers[reg_a] *= self.registers[reg_b]
+            self.registers[register_a] *= self.registers[register_b]
 
         elif op is "DIV":
-            self.registers[reg_a] /= self.registers[reg_b]
+            self.registers[register_a] /= self.registers[register_b]
+
+        elif op is "CMP":
+            if self.registers[register_a] == self.registers[register_b]:
+                self.fl = 0b00000001
+            elif self.registers[register_a] < self.registers[register_b]:
+                self.fl = 0b00000100
+            elif self.registers[register_a] > self.registers[register_b]:
+                self.fl = 0b00000010
+
+        elif op is "AND":
+            bitwise_AND_result = self.registers[register_a] & self.registers[register_b]
+            self.registers[register_a] = bitwise_AND_result
+
+        elif op is "NOT":
+            bitwise_NOT_result = ~ self.registers[register_a]
+            self.registers[register_a] = bitwise_NOT_result
+
+        elif op is "OR":
+            bitwise_OR_result = self.registers[register_a] | self.registers[register_b]
+            self.registers[register_a] = bitwise_OR_result
+
+        elif op is "XOR":
+            bitwise_XOR_result = self.registers[register_a] ^ self.registers[register_b]
+            self.registers[register_a] = bitwise_XOR_result
+
+        elif op is "MOD":
+            remainder = self.registers[register_a] % self.registers[register_b]
+            if self.registers[register_b] == 0:
+                print("Register B's value cannot be 0")
+                sys.exit()
+            self.registers[register_a] = remainder
+
         else:
             raise Exception("Unsupported ALU operation")
 
